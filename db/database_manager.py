@@ -218,10 +218,10 @@ class DatabaseManager:
         connection.commit()
         connection.close()
 
-    def _ask_database(self, query):
+    def _ask_database(self, query, parameters = ()):
         connection = sqlite3.connect(self.DATABASE_NAME)
         cursor = connection.cursor()
-        cursor.execute(query)
+        cursor.execute(query, parameters)
         results = cursor.fetchall()
         connection.close()
 
@@ -239,6 +239,68 @@ class DatabaseManager:
             JOIN Katedra k 
                 ON pu.katedra_id = k.ID;
         """)
+
+    def get_team_for(self, employee_id):
+        return self._ask_database("""
+        SELECT 
+            pu.id AS pracownik_id,
+            pu.imie,
+            pu.nazwisko,
+            k.nazwa AS katedra
+        FROM Pracownik_uczelni pu
+        JOIN Pracownik_uczelni_Zespol_hospitujacy pz ON pu.id = pz.pracownik_uczelni_id
+        JOIN (
+            SELECT h.zespol_hospitujacy_id
+            FROM Hospitacja h
+            WHERE h.pracownik_uczelni_id = ? AND h.ramowy_harmonogram_hospitacji_id IS NULL
+            ORDER BY h.termin_hospitacji DESC
+            LIMIT 1
+        ) AS nh ON pz.zespol_hospitujacy_id = nh.zespol_hospitujacy_id
+        JOIN Katedra k ON pu.katedra_id = k.id;
+        """, (employee_id, ))
+
+    def insert_team_for(self, employee_id, team_mem1_id, team_mem2_id):
+        connection = sqlite3.connect(self.DATABASE_NAME)
+        cursor = connection.cursor()
+        cursor.execute("""
+        SELECT h.id,
+                h.zespol_hospitujacy_id
+            FROM Hospitacja h
+            WHERE h.pracownik_uczelni_id = ? AND 
+            h.ramowy_harmonogram_hospitacji_id IS NULL
+            ORDER BY h.termin_hospitacji DESC
+            LIMIT 1;""", (employee_id,))
+        results = cursor.fetchall()
+        if not results:
+            cursor.execute("""
+                INSERT INTO Hospitacja (zespol_hospitujacy_id, pracownik_uczelni_id, ramowy_harmonogram_hospitacji_id, termin_hospitacji)
+                VALUES (NULL, ?, NULL, NULL)
+            """, (employee_id,))
+            inspection_id = cursor.lastrowid
+        else:
+            inspection_id = results[0][0]
+            cursor.execute("""
+                        DELETE FROM Zespol_hospitujacy WHERE id = ?
+                    """, (results[0][1],))
+        cursor.execute("""
+                        INSERT INTO Zespol_hospitujacy DEFAULT VALUES
+                    """)
+        new_inspection_team_id = cursor.lastrowid
+        cursor.execute("""
+            UPDATE Hospitacja
+            SET zespol_hospitujacy_id = ?
+            WHERE id = ?
+        """, (new_inspection_team_id, inspection_id))
+
+        team_members = [(team_mem1_id, new_inspection_team_id), (team_mem2_id, new_inspection_team_id)]
+        cursor.executemany("""
+                    INSERT OR IGNORE INTO Pracownik_uczelni_Zespol_hospitujacy (pracownik_uczelni_id, zespol_hospitujacy_id) 
+                    VALUES (?, ?)
+                """, team_members)
+
+
+        connection.commit()
+        connection.close()
 
 
     def get_recommended_employees(self):

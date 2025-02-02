@@ -1,12 +1,23 @@
-from PyQt6.QtWidgets import QSpacerItem, QTableWidget, QTableWidgetItem, QHeaderView, QGridLayout, QComboBox
+from PyQt6.QtWidgets import QSpacerItem, QTableWidget, QTableWidgetItem, QHeaderView, QGridLayout, QComboBox, \
+    QStyledItemDelegate
 
+from db.database_manager import DatabaseManager
 from ui.main_componenets import *
 import random
+
+class WrapDelegate(QStyledItemDelegate):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        option.textElideMode = Qt.TextElideMode.ElideRight
+        option.wrapText = True
 
 class HeadOfDepartmentController(UserController):
     def __init__(self, content_layout, db_manager):
         super().__init__(content_layout)
-        self.db_manager = db_manager
+        self.db_manager: DatabaseManager = db_manager
         self.main_screen()
 
     def main_screen(self):
@@ -46,36 +57,51 @@ class HeadOfDepartmentController(UserController):
 
         self.table = QTableWidget()
         self.table.setRowCount(len(inspected_list))  # Liczba wierszy
-        self.table.setColumnCount(5)  # Liczba kolumn
-        self.table.setHorizontalHeaderLabels(["Imię", "Nazwisko", "Katedra", "Czas od ostatniej hospitacji", ""])
+        self.table.setColumnCount(6)  # Liczba kolumn
+        self.table.setHorizontalHeaderLabels(["Imię", "Nazwisko", "Katedra", "Czas od ostatniej \nhospitacji", "Wybrany zespół", ""])
+        self.table.setWordWrap(False)
+
 
         # Wypełnianie tabeli danymi
         for row, (employee_id, name, last_name, department, time) in enumerate(inspected_list):
             item_name = QTableWidgetItem(name)
             item_last_name = QTableWidgetItem(last_name)
             item_department = QTableWidgetItem(department)
+            team = self.db_manager.get_team_for(employee_id)
+            team_string = '\n'.join([f"{mem[1]} {mem[2]} - {mem[3]}" for mem in team]) if team else "-"
+            item_team = QTableWidgetItem(team_string)
 
             # Ustawianie tooltipów dla komórek
             item_name.setToolTip(name)
             item_last_name.setToolTip(last_name)
             item_department.setToolTip(department)
+            item_team.setToolTip(team_string)
 
             self.table.setItem(row, 0, item_name)
             self.table.setItem(row, 1, item_last_name)
             self.table.setItem(row, 2, item_department)
 
             self.table.setItem(row, 3, QTableWidgetItem(str(time) + " dni"))
+            self.table.setItem(row, 4, item_team)
             choose_button = QPushButton("Wybierz członków zespołu")
             choose_button.clicked.connect(lambda _, emp_id=employee_id: self.choose_inspection_team(emp_id))
-            self.table.setCellWidget(row, 4, choose_button)
+            self.table.setCellWidget(row, 5, choose_button)
 
         self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table.horizontalHeader().setMinimumHeight(40)
+        self.table.verticalHeader().setDefaultSectionSize(40)
+        self.table.setColumnWidth(2, 110)
+        self.table.setColumnWidth(3, 110)
+        self.table.setColumnWidth(4, 130)
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        # self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        # self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
 
         # Włączenie wyświetlania pełnego tekstu po najechaniu kursorem
         self.table.setToolTipDuration(-1)
         self.table.setMouseTracking(True)
-        self.table.setWordWrap(True)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.content_layout.addWidget(self.table)
 
@@ -201,8 +227,9 @@ class HeadOfDepartmentController(UserController):
 
         self.content_layout.addItem(QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
-    def select_team(self, chosen_inspected, team1, team2):
-        print(f"{chosen_inspected} {team1} {team2}")
+    def select_team(self, chosen_inspected_id, team_mem1_id, team_mem2_id):
+        print(f"{chosen_inspected_id} {team_mem1_id} {team_mem2_id}")
+        self.db_manager.insert_team_for(chosen_inspected_id, team_mem1_id, team_mem2_id)
 
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Icon.Information)
