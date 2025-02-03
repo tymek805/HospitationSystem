@@ -19,11 +19,11 @@ class ZJKMemberController(UserController):
     def main_screen(self):
         self.clear_content()
         container = self.main_container()
-        self.action_button("Zarządzanie wykazem osób proponowanych do hospitacji", self.list_of_recommended, container.layout())
+        self.action_button("Zarządzanie wykazem osób proponowanych do hospitacji", self.list_of_employees, container.layout())
         container.layout().addItem( QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
         self.content_layout.addWidget(container)
 
-    def list_of_recommended(self):
+    def list_of_employees(self):
         self.clear_content()
         header = QWidget()
         header_layout = QHBoxLayout()
@@ -56,7 +56,7 @@ class ZJKMemberController(UserController):
         all_list_layout = QVBoxLayout(all_list_content)
         
         # Create first part
-        employees = self.db_manager.get_recommended_employees()
+        employees = self.db_manager.get_employees_for_hospitation()
         overdue_employees = [list(employee) for employee in employees if employee[-1] >= 800]
         if overdue_employees:
             all_list_layout.addWidget(self.create_list_header("Pracownicy nie hospitowani w terminach podanych w zarządzeniu wewnętrznym"))
@@ -172,7 +172,7 @@ class ZJKMemberController(UserController):
         buttons_layout = QHBoxLayout()
 
         back_button = QPushButton("Powrót")
-        back_button.clicked.connect(self.list_of_recommended)
+        back_button.clicked.connect(self.list_of_employees)
 
         continue_button = QPushButton("Zatwierdź")
         continue_button.clicked.connect(lambda: self.confirm(selected_employees))
@@ -190,18 +190,12 @@ class ZJKMemberController(UserController):
         self.content_layout.addWidget(self.create_employee_list(selected_employees, True))
 
     def confirm(self, selected_employees):
-        """ TODO:
-                1. Zapisuje wybranych pracowników w wykazie osób proponowanych do hospitacji
-                2. Przesyła wykaz kierownikom katedr
-                3. Wyświetla powiadomienie o wykonaniu operacji
-        """
         if not selected_employees:
             notification = EmptySelectedUsersDialog()
             if notification.exec():
                 return
 
         self.db_manager.save_hospitation_employees_list(selected_employees)
-        # save_hospitation_employees_list
         self.confirm_notification()
 
     def confirm_notification(self):
