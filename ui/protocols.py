@@ -40,7 +40,7 @@ class Protocols:
 
         container = QWidget()
         container_layout = QHBoxLayout()
-        print(protocol)
+
         actions_label = QLabel(
             f"Protokół hospitacji w semestrze \"{self.user_controller.db_manager.get_semester_name(protocol[-1])}\"")
         actions_label.setFont(QFont("Arial", 14))
@@ -57,7 +57,7 @@ class Protocols:
 
         protocol_text = QTextEdit()
         protocol_text.setReadOnly(True)
-        text = self.load_protocol_content(protocol[5])
+        text = self.user_controller.db_manager.load_protocol_content(protocol[5])
         protocol_text.setText(text)
         protocol_text.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
@@ -79,10 +79,3 @@ class Protocols:
         protocol_container.setLayout(protocol_layout)
         self.user_controller.content_layout.addWidget(protocol_container)
 
-    def load_protocol_content(self, file_path):
-        try:
-            with open(file_path, 'r', encoding='utf-8') as file:
-                content = file.read()
-                return content
-        except Exception as e:
-            return f"Error loading file: {str(e)}"
