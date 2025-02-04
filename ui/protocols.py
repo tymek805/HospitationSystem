@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout,
     QHBoxLayout, QFrame, QSpacerItem, QSizePolicy, QTextEdit
 )
-import functools
+
 from ui.main_componenets import UserController
 
 
@@ -31,7 +31,7 @@ class Protocols:
 
         for protocol in self.protocols:
             protocol_title = f"{self.user_controller.db_manager.get_employee_full_name(protocol[0])} - {protocol[4]}"
-            UserController.action_button(protocol_title, functools.partial(self.protocols_screen_2, protocol), self.user_controller.content_layout,
+            UserController.action_button(protocol_title, lambda: self.protocols_screen_2(protocol), self.user_controller.content_layout,
                                Qt.AlignmentFlag.AlignHCenter)
         self.user_controller.content_layout.addStretch()
 

@@ -1,7 +1,6 @@
 import sqlite3
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from enum import Enum
-import os
 
 class UserType(Enum):
     HEAD_OF_DEPARTMENT = "HEAD_OF_DEPARTMENT"
@@ -18,9 +17,6 @@ class DatabaseManager:
         self.initialize_database()
 
     def initialize_database(self):
-        if os.path.exists(self.DATABASE_NAME):
-            os.remove(self.DATABASE_NAME)
-
         connection = sqlite3.connect(self.DATABASE_NAME)
         cursor = connection.cursor()
 
@@ -206,12 +202,8 @@ class DatabaseManager:
             VALUES (1, 1, 1, ?)
         """, (date.today(),))
 
-        cursor.execute("""
-            INSERT OR IGNORE INTO Hospitacja (zespol_hospitujacy_id, pracownik_uczelni_id, ramowy_harmonogram_hospitacji_id, termin_hospitacji) 
-            VALUES (1, 2, 1, ?)
-        """, ((datetime.now() - timedelta(days=7)).date(),))
-
-        cursor.execute("INSERT OR IGNORE INTO Semestr (rok, ktora_polowa, nazwa_semestru) VALUES (2024, 1, 'Semestr letni')")
+        cursor.execute(
+            "INSERT OR IGNORE INTO Semestr (rok, ktora_polowa, nazwa_semestru) VALUES (2024, 1, 'Semestr letni')")
 
         cursor.execute("""
             INSERT OR IGNORE INTO Raport_z_hospitacji (semestr_id, sciezka_do_pliku) 
@@ -222,11 +214,6 @@ class DatabaseManager:
             INSERT OR IGNORE INTO Protokol_hospitacji (hospitacja_id, zespol_hospitujacy_id, ocena_koncowa, data_utworzenia, sciezka_do_pliku, raport_z_hospitacji_id)
             VALUES (1, 1, 4.5, ?, 'protocols/protokol1.txt', 1)
         """, (date.today(),))
-
-        cursor.execute("""
-                    INSERT OR IGNORE INTO Protokol_hospitacji (hospitacja_id, zespol_hospitujacy_id, ocena_koncowa, data_utworzenia, sciezka_do_pliku, raport_z_hospitacji_id)
-                    VALUES (2, 1, 5.0, ?, 'protocols/protokol2.txt', 1)
-                """, ((datetime.now() - timedelta(days=7)).date(),))
 
         connection.commit()
         connection.close()
@@ -471,16 +458,16 @@ class DatabaseManager:
         query = """
             SELECT ph.ID AS Protocol_ID, 
                    ph.hospitacja_id, 
-                   ph.zespol_hospitujacy_id, 
-                   ph.ocena_koncowa, 
-                   ph.data_utworzenia, 
-                   ph.sciezka_do_pliku, 
-                   ph.raport_z_hospitacji_id
+                   ph.Zespol_hospitujacy_id, 
+                   ph.Ocena_koncowa, 
+                   ph.Data_utworzenia, 
+                   ph.Sciezka_do_pliku, 
+                   ph.Raport_z_hospitacji_ID
             FROM Protokol_hospitacji ph
-            JOIN Hospitacja h ON ph.hospitacja_id = h.ID
-            JOIN Zespol_hospitujacy zh ON ph.zespol_hospitujacy_id = zh.ID
+            JOIN Hospitacja h ON ph.Hospitacja_ID = h.ID
+            JOIN Zespol_hospitujacy zh ON ph.Zespol_hospitujacy_ID = zh.ID
             JOIN Pracownik_uczelni_Zespol_hospitujacy puzh 
-                ON zh.ID = puzh.zespol_hospitujacy_id
+                ON zh.ID = puzh.Zespol_hospitujacy_ID
             WHERE puzh.Pracownik_uczelni_ID = ?;
         """
 
