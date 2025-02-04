@@ -56,7 +56,7 @@ class ZJKMemberController(UserController):
         all_list_layout = QVBoxLayout(all_list_content)
         
         # Create first part
-        employees = self.db_manager.get_employees_for_hospitation()
+        employees = self.db_manager.get_employees_for_inspection()
         overdue_employees = [list(employee) for employee in employees if employee[-1] >= 800]
         if overdue_employees:
             all_list_layout.addWidget(self.create_list_header("Pracownicy nie hospitowani w terminach podanych w zarządzeniu wewnętrznym"))

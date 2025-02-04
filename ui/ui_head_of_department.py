@@ -5,15 +5,6 @@ from db.database_manager import DatabaseManager
 from ui.main_componenets import *
 import random
 
-class WrapDelegate(QStyledItemDelegate):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    def initStyleOption(self, option, index):
-        super().initStyleOption(option, index)
-        option.textElideMode = Qt.TextElideMode.ElideRight
-        option.wrapText = True
-
 class HeadOfDepartmentController(UserController):
     def __init__(self, content_layout, db_manager):
         super().__init__(content_layout)
@@ -48,7 +39,8 @@ class HeadOfDepartmentController(UserController):
         return container
 
     def choose_inspected(self):
-        inspected_list = self.db_manager.get_newest_recommended_list()
+        # inspected_list = self.db_manager.get_newest_recommended_list()
+        inspected_list = self.db_manager.get_employees()
         if not inspected_list:
             show_error_message("Brak osób proponowanych do hospitacji\nWybranie zespołów niemożliwe")
             return self.main_screen()
@@ -95,8 +87,6 @@ class HeadOfDepartmentController(UserController):
         self.table.setColumnWidth(4, 130)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        # self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        # self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
 
         # Włączenie wyświetlania pełnego tekstu po najechaniu kursorem

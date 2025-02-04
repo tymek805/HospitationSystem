@@ -303,7 +303,7 @@ class DatabaseManager:
         connection.close()
 
 
-    def get_employees_for_hospitation(self):
+    def get_employees_for_inspection(self):
         connection = sqlite3.connect(self.DATABASE_NAME)
         cursor = connection.cursor()
 
