@@ -5,11 +5,6 @@ from PyQt6.QtWidgets import (
 
 from ui.main_componenets import *
 
-
-# TODO:
-#  - good back button for summary
-#  - safety measure for none employee selected and none
-
 class ZJKMemberController(UserController):
     def __init__(self, content_layout, db_manager):
         super().__init__(content_layout)
