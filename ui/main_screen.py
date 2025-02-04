@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
 )
 
 from db.database_manager import UserType
-from ui.main_componenets import MainLayout
+from ui.main_componenets import MainLayout, UserController
 from ui.ui_dean import DeanController
 from ui.ui_head_of_department import HeadOfDepartmentController
 from ui.ui_inpsected import InspectedController

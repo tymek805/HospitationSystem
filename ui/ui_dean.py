@@ -13,12 +13,12 @@ class DeanController(UserController):
     def main_screen(self):
         self.clear_content()
         container = self.main_container()
-        self.action_button("Raporty hospitacji", self.reports_screen_1, container.layout())
+        self.action_button("Raporty hospitacji", self.reports_screen, container.layout())
         self.action_button("Zatwierdzanie ramowego harmonogramu hspitacji", lambda: print("nieobsługiwane"), container.layout())
         container.layout().addItem( QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
         self.content_layout.addWidget(container)
 
-    def reports_screen_1(self):
+    def reports_screen(self):
         self.clear_content()
         container = QWidget()
         container_layout = QHBoxLayout()
@@ -38,10 +38,10 @@ class DeanController(UserController):
         reports = self.db_manager.get_reports()
         for report in reports:
             report_title = f"{report[3]} {report[1]}"
-            UserController.action_button(report_title, lambda: self.reports_screen_2(report), self.content_layout,
-                               Qt.AlignmentFlag.AlignHCenter)
+            UserController.action_button(report_title, lambda: self.reports_details(report), self.content_layout,
+                                         Qt.AlignmentFlag.AlignHCenter)
 
-    def reports_screen_2(self, report):
+    def reports_details(self, report):
         self.clear_content()
         container = QWidget()
         container_layout = QHBoxLayout()
@@ -51,7 +51,7 @@ class DeanController(UserController):
         actions_label.setFont(QFont("Arial", 14))
         spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         back_button = QPushButton("Powrót")
-        back_button.clicked.connect(self.reports_screen_1)
+        back_button.clicked.connect(self.reports_screen)
         container_layout.addWidget(actions_label)
         container_layout.addSpacerItem(spacer)
         container_layout.addWidget(back_button)
